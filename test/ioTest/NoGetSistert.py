@@ -2,9 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def get():
-    page = requests.session().get('http://www.budejie.com/text/15', headers={'User-Agent':
-                                                                                 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'})
+def get(p):
+    page = requests.session().get('http://www.budejie.com/text/' + str(p), headers={'User-Agent':
+                                                                                        'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'})
 
     pageInfo = BeautifulSoup(page.text, 'html.parser')
 
@@ -28,4 +28,4 @@ def huanhang(temp):
 
 
 if __name__ == '__main__':
-    get()
+    get(1)
