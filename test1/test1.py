@@ -1,15 +1,21 @@
-
-from urllib import request
-
+import requests
 from bs4 import BeautifulSoup
 
-url = 'http://www.budejie.com/text/1'
+url = 'http://tools.2345.com/carlist.htm'
 
-result = request.Request(url)
-result.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36')
-page = request.urlopen(result).read().decode('utf-8')
-pageInfo = BeautifulSoup(page, 'lxml')
-div = pageInfo.find_all('div', 'j-r-list-c-desc')
+header = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)'
+                        ' Chrome/49.0.2623.112 Safari/537.36'}
 
-for b in div:
-    print(str(b.a) + '\r\n')
+html = requests.get(url, headers=header)
+soup = BeautifulSoup(html.text, 'lxml')
+
+soup_one = soup.find_all('tr')
+word = []
+for one in soup_one:
+    tr = one.find_all(['td'])
+    if tr:
+        for td in tr:
+
+            word.append(td)
+for s in word:
+    print(s)
