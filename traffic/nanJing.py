@@ -1,18 +1,13 @@
+import re
 import time
 
-import pymysql
 import requests
 from PIL import Image
 from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify
+from pytesseract import pytesseract
 
 app = Flask(__name__)
-connection = pymysql.connect(host='localhost',
-                             port=3306,
-                             user='root',
-                             password='nzm19940827',
-                             db='amdb',
-                             charset='utf8')
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
     'Referer': 'http://www.njjg.gov.cn:81/simplequery/simplequery.aspx',
@@ -30,6 +25,8 @@ res = session.post('http://www.njjg.gov.cn:81/simplequery/simplequery.aspx', hea
 
 def check(post_data):
     response = session.post('http://www.njjg.gov.cn:81/simplequery/simplequery.aspx', headers=headers, data=post_data)
+    if 200 != response.status_code:
+        print('访问失败，错误码：  ' + response.status_code)
     return response.text
 
 
@@ -41,9 +38,11 @@ def get_captcha():
     with open('code.jpg', 'wb') as f:
         f.write(r.content)
     im = Image.open('code.jpg')
-    im.show()
-    captcha = input("验证码：")
-    return captcha
+    vcode = pytesseract.image_to_string(im)
+    # im.show()
+    # print('识别的验证码：============ ' + vcode)
+    # captcha = input("验证码：")
+    return vcode
 
 
 def get_viewstate():
@@ -78,8 +77,9 @@ def check_traffic():
     html = check(post_data)
     soup = BeautifulSoup(html, 'lxml')
     table = soup.find('table', attrs={'cellspacing': '0', 'rules': 'all'})
-    # reg = re.compile(r'<td>(.*?)</td>')
-    # list = reg.findall(str(table))
+    if table is None:
+        err = re.compile(r'<script>alert\(\'(.*?)\'\)</script>')
+        return err.findall(html)[0]
 
     value = []
     result = []
@@ -88,7 +88,8 @@ def check_traffic():
             value.append(d.get_text())
     k = 0
     for i in range(int(len(value) / 6)):
-        dic = {'id': value[k], 'no': value[k + 1], 'time': value[k + 2], 'place': value[k + 3], 'action': value[k + 4],
+        dic = {'id': value[k], 'monitoring_number': value[k + 1], 'time': value[k + 2], 'place': value[k + 3],
+               'action': value[k + 4],
                'money': value[k + 5]}
         k += 6
         result.append(dic)
