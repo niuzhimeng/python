@@ -31,7 +31,7 @@ def get_yan_zheng():
         f.write(haha.content)
     im = Image.open('code.jpg')
     im.show()
-    yan = input('请输入验证码')
+    yan = input('请输入验证码: ')
     return yan
 
 
@@ -50,11 +50,14 @@ def login(email, password):
     # 登录的URL
     # requests 的session登录，以post方式，参数分别为url、headers、data
     content = session.post(login_url, headers=headers, data=login_data)
-    print('==================' + content.text)
-    # 再次使用session以get去访问知乎首页，一定要设置verify = False，否则会访问失败
-    s = session.get("http://www.zhihu.com", headers=headers, verify=False)
-    print(s.status_code)
-    print(s.text)
+    result_json = content.json()
+    # 如果登录成功
+    if 0 == result_json['r']:
+        # 再次使用session以get去访问知乎首页，一定要设置verify = False，否则会访问失败
+        s = session.get("http://www.zhihu.com", headers=headers, verify=False)
+        print(s.text)
+    else:
+        print('登录失败')
 
 
 if __name__ == "__main__":
