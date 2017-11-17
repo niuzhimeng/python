@@ -35,14 +35,18 @@ def get_captcha():
     t = str(int(time.time() * 1000))
     captcha_url = 'http://www.njjg.gov.cn:81/GetValidate.aspx?n=4&t=' + t
     r = session.get(captcha_url, headers=headers)
-    with open('code.jpg', 'wb') as f:
-        f.write(r.content)
-    im = Image.open('code.jpg')
-    vcode = pytesseract.image_to_string(im)
+
+    cook = r.cookies.get('validate_code')
+    # print(cook)
+    # with open('code.jpg', 'wb') as f:
+    #     f.write(r.content)
+    # im = Image.open('code.jpg')
+    # vcode = pytesseract.image_to_string(im)
     # im.show()
     # print('识别的验证码：============ ' + vcode)
     # captcha = input("验证码：")
-    return vcode
+    #print(vcode)
+    return cook
 
 
 def get_viewstate():
