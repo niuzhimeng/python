@@ -2,10 +2,8 @@ import re
 import time
 
 import requests
-from PIL import Image
 from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify
-from pytesseract import pytesseract
 
 app = Flask(__name__)
 headers = {
@@ -24,7 +22,8 @@ res = session.post('http://www.njjg.gov.cn:81/simplequery/simplequery.aspx', hea
 
 
 def check(post_data):
-    response = session.post('http://www.njjg.gov.cn:81/simplequery/simplequery.aspx', headers=headers, data=post_data)
+    response = session.post('http://www.njjg.gov.cn:81/simplequery/simplequery.aspx', headers=headers, data=post_data,
+                            proxies={'http://': '110.73.33.19:8123'})
     if 200 != response.status_code:
         print('访问失败，错误码：  ' + response.status_code)
     return response.text
@@ -45,7 +44,7 @@ def get_captcha():
     # im.show()
     # print('识别的验证码：============ ' + vcode)
     # captcha = input("验证码：")
-    #print(vcode)
+    # print(vcode)
     return cook
 
 
