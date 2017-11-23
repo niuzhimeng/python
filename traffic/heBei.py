@@ -1,6 +1,6 @@
 import re
 import time
-
+from urllib.request import quote
 import requests
 from PIL import Image
 from bs4 import BeautifulSoup
@@ -12,13 +12,12 @@ session = requests.session()
 change = {'A': '11', 'B': '12', 'C': '13', 'D': '14', 'E': '15', 'F': '16', 'G': '17', 'H': '18', 'J': '20', 'R': '28',
           'S': '29', 'T': '30', 'O': '25'}
 
+check_url = 'http://www.hbgajg.com/service/show-12-42.html'
 
-@app.route("/check_traffic_heBei", methods=['get'])
-def check():
-    vin = request.args.get('vin')
-    carNumber = request.args.get('carNumber')
+html = ''
 
-    check_url = 'http://www.hbgajg.com/service/show-12-42.html'
+
+def get_ssh_code(vin, car_number):
     check_header = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
         'Host': 'www.hbgajg.com',
@@ -27,48 +26,69 @@ def check():
     }
     check_body = {
         'CC_JDCWZ_OneArea': '11',
-        'CC_JDCWZ_OneZimu': change.get(carNumber[1:2]),
-        'CC_JDCWZ_Two': carNumber[2:],
+        'CC_JDCWZ_OneZimu': change.get(car_number[1:2]),
+        'CC_JDCWZ_Two': car_number[2:],
         'CC_JDCWZ_Three': '02',
         'CC_JDCWZ_Four': vin,
         'aapi': 'a1'
     }
     check_res = session.post(check_url, data=check_body, headers=check_header)
     check_res.encoding = check_res.apparent_encoding
+    global html
     html = check_res.text
     t = str(int(time.time() * 1000))
     ssh_url = re.findall(r'\$.getJSON\("(.*?)"\+new Date\(\)\.getTime\(\)', html)
     ssh_url = ssh_url[1] + t
     res = session.get(ssh_url, headers=check_header)
-    ssh_code = res.text[13:-3]
+    return res.text[13:-3]
 
+
+def get_yzm(ssh_code):
     yzm_url = 'http://apicode.hbgajg.com/api.php?op=acheckcode&code_len=2&fdjh=default_sg&wb=1&sshcode=' + ssh_code
     yzm_res = session.get(yzm_url)
+    print(str(yzm_res))
+    if yzm_res.status_code != 200:
+        print('验证码状态： ' + str(yzm_res))
+        return '验证码获取异常'
     with open('yzm.jpg', 'wb') as f:
         f.write(yzm_res.content)
-
     im = Image.open('yzm.jpg')
     im.show()
     captcha = input('请输入验证码： ')
+    return captcha
 
+
+@app.route("/check_traffic_heBei", methods=['get'])
+def check():
+    vin = request.args.get('vin')
+    car_number = request.args.get('carNumber')
+    # 获取ssh_code码
+    ssh_code = get_ssh_code(vin, car_number)
+    # 获取验证码
+    captcha = get_yzm(ssh_code)
+    t = str(int(time.time() * 1000))
     ajax_header = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
         'Referer': 'http://www.hbgajg.com/service/show-12-42.html',
         'Host': 'apicode.hbgajg.com'
     }
-    ajax = 'http://apicode.hbgajg.com/testcode.php?hphm=X0536&inputcode=' + captcha + '&sslcode=' + ssh_code + '&nocache=' + t
+    ajax = 'http://apicode.hbgajg.com/testcode.php?hphm=' + \
+           car_number[2:] + '&inputcode=' + captcha + '&sslcode=' + ssh_code + '&nocache=' + t
     aa = session.get(ajax, headers=ajax_header)
+    print('校验验证码返回： ' + aa.text)
     if not aa.text.__contains__('1'):
         return '验证码错误'
 
+    # 获取隐藏域内的信息
     _hphm = re.findall(r'<input type="hidden" name="_hphm" value="(.*?)" />', html)
     sbdm = re.findall(r'<input type="hidden" name="sbdm" value="(.*?)" />', html)
     pAutoID = re.findall(r'<input type="hidden" name="pAutoID" value="(.*?)" />', html)
     page = re.findall(r'<input type="hidden" name="page" value="(.*?)" />', html)
     ko = re.findall(r'<input type="hidden" name="ko" id="ko" value="(.*?)">', html)
 
+    # 拼接请求体
     second_body = {
-        'inputcode': captcha,
+        'inputcode': quote(captcha),
         'sshcode': ssh_code,
         '_hphm': _hphm[0],
         'sbdm': sbdm[0],
@@ -76,13 +96,7 @@ def check():
         'page': page[0],
         'ko': ko[0]
     }
-    second_headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-        'Referer': 'http://www.hbgajg.com/service/show-12-42.html',
-        'Origin': 'http://www.hbgajg.com',
-        'Host': 'www.hbgajg.com'
-    }
-    result = session.post(check_url, data=second_body, headers=second_headers)
+    result = session.post(check_url, data=second_body, headers=ajax_header)
     result.encoding = result.apparent_encoding
     end_result = result.text
 
