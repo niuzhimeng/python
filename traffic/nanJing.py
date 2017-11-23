@@ -22,8 +22,7 @@ res = session.post('http://www.njjg.gov.cn:81/simplequery/simplequery.aspx', hea
 
 
 def check(post_data):
-    response = session.post('http://www.njjg.gov.cn:81/simplequery/simplequery.aspx', headers=headers, data=post_data,
-                            proxies={'http://': '110.73.33.19:8123'})
+    response = session.post('http://www.njjg.gov.cn:81/simplequery/simplequery.aspx', headers=headers, data=post_data)
     if 200 != response.status_code:
         print('访问失败，错误码：  ' + response.status_code)
     return response.text
@@ -62,7 +61,7 @@ def get_EVENTVALIDATION():
     return b
 
 
-@app.route("/check_traffic", methods=['get'])
+@app.route("/check_traffic_nanJing", methods=['get'])
 def check_traffic():
     license = request.args.get('license')
     carDriveNumber = request.args.get('carDriveNumber')
@@ -70,7 +69,7 @@ def check_traffic():
                  'txt_BDate': '2015-11-15',
                  'txt_hp1': license[:2],
                  'txt_hp2': license[2:],
-                 'txt_EDate': '2017-11-15',
+                 'txt_EDate': '2017-11-22',
                  'txt_fdjh': carDriveNumber,
                  'txtCheck': get_captcha(),
                  'btn_Query': '查 询',
