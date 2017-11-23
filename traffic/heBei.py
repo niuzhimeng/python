@@ -88,7 +88,7 @@ def check():
 
     # 拼接请求体
     second_body = {
-        'inputcode': quote(captcha),
+        'inputcode': captcha.encode('gbk'),  # 该网站是gbk编码
         'sshcode': ssh_code,
         '_hphm': _hphm[0],
         'sbdm': sbdm[0],
