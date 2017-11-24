@@ -39,14 +39,21 @@ def get_ssh_code(vin, car_number):
     t = str(int(time.time() * 1000))
     ssh_url = re.findall(r'\$.getJSON\("(.*?)"\+new Date\(\)\.getTime\(\)', html)
     ssh_url = ssh_url[1] + t
-    res = session.get(ssh_url, headers=check_header)
+    res = session.get(ssh_url)
     return res.text[13:-3]
 
 
 def get_yzm(ssh_code):
+    yzm_header = {
+        'Accept': 'image/webp,image/*,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, sdch',
+        'Host': 'apicode.hbgajg.com',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+        'Referer': 'http://www.hbgajg.com/service/show-12-42.html',
+    }
     yzm_url = 'http://apicode.hbgajg.com/api.php?op=acheckcode&code_len=2&fdjh=default_sg&wb=1&sshcode=' + ssh_code
-    yzm_res = session.get(yzm_url)
-    print(str(yzm_res))
+    yzm_res = session.get(yzm_url, headers=yzm_header)
+    print(yzm_res.content)
     if yzm_res.status_code != 200:
         print('验证码状态： ' + str(yzm_res))
         return '验证码获取异常'
@@ -67,14 +74,12 @@ def check():
     # 获取验证码
     captcha = get_yzm(ssh_code)
     t = str(int(time.time() * 1000))
-    ajax_header = {
+    yzm_header = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-        'Referer': 'http://www.hbgajg.com/service/show-12-42.html',
-        'Host': 'apicode.hbgajg.com'
     }
     ajax = 'http://apicode.hbgajg.com/testcode.php?hphm=' + \
            car_number[2:] + '&inputcode=' + captcha + '&sslcode=' + ssh_code + '&nocache=' + t
-    aa = session.get(ajax, headers=ajax_header)
+    aa = session.get(ajax, headers=yzm_header)
     print('校验验证码返回： ' + aa.text)
     if not aa.text.__contains__('1'):
         return '验证码错误'
@@ -96,16 +101,33 @@ def check():
         'page': page[0],
         'ko': ko[0]
     }
+    ajax_header = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+        'Referer': 'http://www.hbgajg.com/service/show-12-42.html',
+        'Host': 'www.hbgajg.com',
+        'Origin': 'http://www.hbgajg.com'
+    }
     result = session.post(check_url, data=second_body, headers=ajax_header)
     result.encoding = result.apparent_encoding
     end_result = result.text
 
     totle = re.findall(r'<span>（总计：<b>(.*?)</b> 条违法记录,记 <b>(.*?)</b> 分,罚款 <b>(.*?)</b> 元）</span>', end_result)
-
+    if len(totle) < 1:
+        return '无违章信息'
+    # 车身颜色等信息
+    info = re.findall(
+        r'<dt style="position:relative;z-index:99999;"><b>有效期至：</b><span>(.*?)</span>\s*?(.*?)\s*?</dt>\s*?<dt><b>车身颜色：</b>(.*?)</dt>\s*?<dt><b>车辆状态：</b>(.*?)</dt>',
+        end_result, re.M)
     value = []
-    result_map = {'违章记录总数': totle[0][0], '总扣分': totle[0][1], '总罚款': totle[0][2]}
-    result_value = []
+    result_map = {}
+    if len(totle[0]) > 2:
+        result_map = {'违章记录总数': totle[0][0], '总扣分': totle[0][1], '总罚款': totle[0][2]}
+    if len(info[0]) > 3:
+        result_map['有效期至'] = info[0][0] + info[0][1].strip()
+        result_map['车辆颜色'] = info[0][2]
+        result_map['车辆状态'] = info[0][3]
 
+    result_value = []
     soup = BeautifulSoup(end_result, 'lxml')
     table_soup = soup.find_all('table', class_='tb_sr')
     td_soup = BeautifulSoup(str(table_soup), 'lxml').find_all('td')
