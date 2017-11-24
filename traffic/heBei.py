@@ -1,6 +1,6 @@
 import re
 import time
-from urllib.request import quote
+
 import requests
 from PIL import Image
 from bs4 import BeautifulSoup

@@ -35,15 +35,6 @@ def get_captcha():
     r = session.get(captcha_url, headers=headers)
 
     cook = r.cookies.get('validate_code')
-    # print(cook)
-    # with open('code.jpg', 'wb') as f:
-    #     f.write(r.content)
-    # im = Image.open('code.jpg')
-    # vcode = pytesseract.image_to_string(im)
-    # im.show()
-    # print('识别的验证码：============ ' + vcode)
-    # captcha = input("验证码：")
-    # print(vcode)
     return cook
 
 
