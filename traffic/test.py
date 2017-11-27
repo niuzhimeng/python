@@ -47,39 +47,54 @@ def get_js():
 def login():
     try:
         headers = {
-            'Host': 'user.cwddd.com',
-            'Connection': 'keep-alive',
-            'Content-Length': '27',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
             'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'gzip, deflate'
+            'Accept-Language': 'zh-CN,zh;q=0.8',
+            'Cache-Control': 'max-age=0',
+            'Content-Length': '65',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Host': 'user.cwddd.com',
+            'Origin': 'http://user.cwddd.com',
+            'Proxy-Connection': 'keep-alive',
+            'Referer': 'http://user.cwddd.com/Public/login',
+            'Upgrade-Insecure-Requests': '1',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+
         }
         url = 'http://user.cwddd.com/Public/checkUser.html'
         pwd = getPwd(password)
-        session.post(url, headers=headers, data={'username': username, 'password': pwd})
+        data = {
+            'username': username,
+            'password': pwd
+        }
+        # ,allow_redirects=False
+        fi = session.post(url, headers=headers, data=data, allow_redirects=False)
+
+        location = fi.headers['Location']
+        s_header = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+            'Referer': 'http://user.cwddd.com/Public/login'
+        }
+        er = session.get(location, headers=s_header)
         return True
     except Exception:
+        print('报错~！！！！！！！！！！')
         return False
 
 
 # 获取验证码
 def get_yzm():
     yzm_h = {
-        'User-Agent': 'xMozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-        'Referer': 'http: //www.cwddd.com/Service/wfindex.html',
-        'Host': 'hm3.cnzz.com',
-        'X-Powered-By': 'PHP/5.2.17',
-        'Vary': 'Accept-Encoding',
-        'Server': 'nginx',
-        'Pragma': 'no-cache'
+        'User-Agent': 'xMozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
     }
     t = str(int(time.time() * 1000))
-    yzm_url = 'http://www.cwddd.com/Common/verify?ran=' + t
+    # yzm_url = 'http://www.cwddd.com/Common/verify?ran=' + t
+    yzm_url = 'http://www.cwddd.com/Common/verify'
+
     yzm_res = session.get(yzm_url, headers=yzm_h)
     with open('cqyzm.jpg', 'wb') as f:
         f.write(yzm_res.content)
+
     im = Image.open('cqyzm.jpg')
     im.show()
     captcha = input('请输入验证码： ')
@@ -89,10 +104,12 @@ def get_yzm():
 def get_verify_code(yzm):
     verify_code_header = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Referer': 'http://www.cwddd.com/Service/wfindex.html',
         'Origin': 'http://www.cwddd.com',
-        'Referer': 'http://www.cwddd.com/',
-        'Host': 'www.cwddd.com',
-        'X-Requested-With': 'XMLHttpRequest'
+        'Connection': 'keep-alive',
+        'Host': 'www.cwddd.com'
     }
     verify_code_url = 'http://www.cwddd.com/Index/getSearchCosed'
     verify_code_res = session.post(verify_code_url, data={'verify': yzm}, headers=verify_code_header)
@@ -104,7 +121,7 @@ def check():
     check_header = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
         'Origin': 'http://www.cwddd.com',
-        'Referer': 'http://www.cwddd.com/',
+        'Referer': 'http://www.cwddd.com/Service/wfindex.html',
         'Host': 'www.cwddd.com'
     }
     yzm = get_yzm()
@@ -116,12 +133,8 @@ def check():
         'verify': yzm
     }
 
-    u = 'http://hm3.cnzz.com/heatmap.gif?id=1253233115&x=1125&y=893&w=1349&s=1366x768&b=chrome&c=1&r=http%3A%2F%2Fwww.cwddd.com%2FService%2Factwf.html&a=0&p=http%3A%2F%2Fwww.cwddd.com%2F&random=Fri%20Nov%2024%202017%2017%3A57%3A44%20GMT%2B0800%20(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)'
-    i = session.get(u).text
-    print('=====' + i)
     check_url = 'http://www.cwddd.com/Service/actwf.html'
     check_res = session.post(check_url, data=check_data, headers=check_header)
-    check_res.encoding = check_res.apparent_encoding
     print(check_res.text)
 
 

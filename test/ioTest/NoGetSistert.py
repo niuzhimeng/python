@@ -23,7 +23,7 @@ def get(p):
 def __change_row(temp):
     text = ''
     while temp:
-        text = text + temp[:78] + "\r\n"
+        text = text + temp[:76] + "\r\n"
         temp = temp[78:]
     return text
 

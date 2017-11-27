@@ -1,3 +1,5 @@
-S = '冀HX0536'
+import time
 
-print(S[1:2])
+a = time.time()
+
+print(a)
