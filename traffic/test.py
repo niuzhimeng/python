@@ -45,51 +45,47 @@ def get_js():
 
 
 def login():
-    try:
-        headers = {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'zh-CN,zh;q=0.8',
-            'Cache-Control': 'max-age=0',
-            'Content-Length': '65',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Host': 'user.cwddd.com',
-            'Origin': 'http://user.cwddd.com',
-            'Proxy-Connection': 'keep-alive',
-            'Referer': 'http://user.cwddd.com/Public/login',
-            'Upgrade-Insecure-Requests': '1',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+    headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Language': 'zh-CN,zh;q=0.8',
+        'Cache-Control': 'max-age=0',
+        'Content-Length': '65',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Host': 'user.cwddd.com',
+        'Origin': 'http://user.cwddd.com',
+        'Proxy-Connection': 'keep-alive',
+        'Referer': 'http://user.cwddd.com/Public/login',
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
 
-        }
-        url = 'http://user.cwddd.com/Public/checkUser.html'
-        pwd = getPwd(password)
-        data = {
-            'username': username,
-            'password': pwd
-        }
-        # ,allow_redirects=False
-        fi = session.post(url, headers=headers, data=data, allow_redirects=False)
+    }
+    url = 'http://user.cwddd.com/Public/checkUser.html'
+    pwd = getPwd(password)
+    data = {
+        'username': username,
+        'password': pwd
+    }
+    # ,allow_redirects=False
+    fi = session.post(url, headers=headers, data=data, allow_redirects=False)
 
-        location = fi.headers['Location']
-        s_header = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-            'Referer': 'http://user.cwddd.com/Public/login'
-        }
-        session.get(location, headers=s_header)
+    location = fi.headers['Location']
+    s_header = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+        'Referer': 'http://user.cwddd.com/Public/login'
+    }
+    second = session.get(location, headers=s_header, verify=False)
 
-        y_head = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-            'Host': 'www.cwddd.com',
-            'Referer': 'http://www.cwddd.com/'
-        }
-        f_yzm = session.get('http://www.cwddd.com/Common/verify', headers=y_head)
-        with open('first.jpg', 'wb') as f:
-            f.write(f_yzm.content)
+    y_head = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+        'Host': 'www.cwddd.com',
+        'Referer': 'http://www.cwddd.com/',
+    }
+    f_yzm = session.get('http://www.cwddd.com/Common/verify', headers=y_head, verify=False)
+    with open('first.jpg', 'wb') as f:
+        f.write(f_yzm.content)
 
-        return True
-    except Exception:
-        print('报错~！！！！！！！！！！')
-        return False
+    return True
 
 
 # 获取验证码
@@ -102,10 +98,9 @@ def get_yzm():
     }
     t = str(int(time.time() * 1000))
     yzm_url = 'http://www.cwddd.com/Common/verify?ran=' + t
-    global session
-    yzm_res = session.get(yzm_url, headers=yzm_h)
-    with open('second.jpg', 'wb') as f:
-        f.write(yzm_res.content)
+    # yzm_res = session.get(yzm_url, headers=yzm_h)
+    # with open('second.jpg', 'wb') as f:
+    #     f.write(yzm_res.content)
 
     # im = Image.open('second.jpg')
     # im.show()
@@ -146,7 +141,7 @@ def check():
     }
 
     check_url = 'http://www.cwddd.com/Service/actwf.html'
-    check_res = session.post(check_url, data=check_data, headers=check_header)
+    check_res = session.post(check_url, data=check_data, headers=check_header, verify=False)
     print(check_res.text)
 
 
