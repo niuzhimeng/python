@@ -75,7 +75,17 @@ def login():
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
             'Referer': 'http://user.cwddd.com/Public/login'
         }
-        er = session.get(location, headers=s_header)
+        session.get(location, headers=s_header)
+
+        y_head = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+            'Host': 'www.cwddd.com',
+            'Referer': 'http://www.cwddd.com/'
+        }
+        f_yzm = session.get('http://www.cwddd.com/Common/verify', headers=y_head)
+        with open('first.jpg', 'wb') as f:
+            f.write(f_yzm.content)
+
         return True
     except Exception:
         print('报错~！！！！！！！！！！')
@@ -85,18 +95,20 @@ def login():
 # 获取验证码
 def get_yzm():
     yzm_h = {
-        'User-Agent': 'xMozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+        'Host': 'www.cwddd.com',
+        'Referer': 'http://www.cwddd.com/'
+
     }
     t = str(int(time.time() * 1000))
-    # yzm_url = 'http://www.cwddd.com/Common/verify?ran=' + t
-    yzm_url = 'http://www.cwddd.com/Common/verify'
-
+    yzm_url = 'http://www.cwddd.com/Common/verify?ran=' + t
+    global session
     yzm_res = session.get(yzm_url, headers=yzm_h)
-    with open('cqyzm.jpg', 'wb') as f:
+    with open('second.jpg', 'wb') as f:
         f.write(yzm_res.content)
 
-    im = Image.open('cqyzm.jpg')
-    im.show()
+    # im = Image.open('second.jpg')
+    # im.show()
     captcha = input('请输入验证码： ')
     return captcha
 
