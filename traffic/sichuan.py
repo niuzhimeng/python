@@ -1,12 +1,15 @@
 import execjs
 import requests
 import time
+from flask import Flask
+import re
 
-from PIL import Image
-
+app = Flask(__name__)
 session = requests.session()
 username = '295290968@qq.com'
 password = 'nzm19940827'
+
+if_login = 0
 
 
 # 密码加密
@@ -76,16 +79,17 @@ def login():
     }
     second = session.get(location, headers=s_header, verify=False)
 
-    y_head = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-        'Host': 'www.cwddd.com',
-        'Referer': 'http://www.cwddd.com/',
-    }
-    f_yzm = session.get('http://www.cwddd.com/Common/verify', headers=y_head, verify=False)
-    with open('first.jpg', 'wb') as f:
-        f.write(f_yzm.content)
+    global if_login
+    if_login = 1
+    return '登录成功'
 
-    return True
+
+@app.route("/check_traffic_si_chuan", methods=['get'])
+def sichuan():
+    if if_login == 0:
+        return login()
+    else:
+        return check()
 
 
 # 获取验证码
@@ -98,12 +102,9 @@ def get_yzm():
     }
     t = str(int(time.time() * 1000))
     yzm_url = 'http://www.cwddd.com/Common/verify?ran=' + t
-    # yzm_res = session.get(yzm_url, headers=yzm_h)
-    # with open('second.jpg', 'wb') as f:
-    #     f.write(yzm_res.content)
-
-    # im = Image.open('second.jpg')
-    # im.show()
+    yzm_res = session.get(yzm_url, headers=yzm_h)
+    with open('yzm.jpg', 'wb') as f:
+        f.write(yzm_res.content)
     captcha = input('请输入验证码： ')
     return captcha
 
@@ -141,10 +142,11 @@ def check():
     }
 
     check_url = 'http://www.cwddd.com/Service/actwf.html'
-    check_res = session.post(check_url, data=check_data, headers=check_header, verify=False)
-    print(check_res.text)
+    check_res = session.post(check_url, data=check_data, headers=check_header)
+    res = re.compile(r'<span class="no_VIP_icon fl"></span>\s*?<p>(.*?)</p>')
+    mes = res.findall(check_res.text)
+    return str(mes)
 
 
 if __name__ == '__main__':
-    if login():
-        check()
+    app.run(host='192.168.3.213', port=8090, debug=False)
