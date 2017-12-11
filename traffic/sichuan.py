@@ -1,8 +1,9 @@
+import re
+import time
+
 import execjs
 import requests
-import time
 from flask import Flask
-import re
 
 app = Flask(__name__)
 session = requests.session()
@@ -71,14 +72,19 @@ def login():
     }
     # ,allow_redirects=False
     fi = session.post(url, headers=headers, data=data, allow_redirects=False)
-
     location = fi.headers['Location']
     s_header = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-        'Referer': 'http://user.cwddd.com/Public/login'
+        'Referer': 'http://user.cwddd.com/Public/login',
+        'Upgrade-Insecure-Requests': '1',
+        'Connection': 'keep-alive',
+        'Host': 'www.cwddd.com',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, sdch',
+        'Accept-Language': 'zh-CN,zh;q=0.8'
     }
-    second = session.get(location, headers=s_header, verify=False)
-
+    second = session.get(location, headers=s_header)
+    second.text
     global if_login
     if_login = 1
     return '登录成功'
@@ -98,10 +104,10 @@ def get_yzm():
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
         'Host': 'www.cwddd.com',
         'Referer': 'http://www.cwddd.com/'
-
     }
-    t = str(int(time.time() * 1000))
-    yzm_url = 'http://www.cwddd.com/Common/verify?ran=' + t
+    # t = str(int(time.time() * 1000))
+    # yzm_url = 'http://www.cwddd.com/Common/verify?ran=' + t
+    yzm_url = 'http://www.cwddd.com/Common/verify'
     yzm_res = session.get(yzm_url, headers=yzm_h)
     with open('yzm.jpg', 'wb') as f:
         f.write(yzm_res.content)
@@ -130,7 +136,12 @@ def check():
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
         'Origin': 'http://www.cwddd.com',
         'Referer': 'http://www.cwddd.com/Service/wfindex.html',
-        'Host': 'www.cwddd.com'
+        'Host': 'www.cwddd.com',
+
+        'Accept': 'image/webp,image/*,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, sdch',
+        'Accept-Language': 'zh-CN,zh;q=0.8',
+        'Connection': 'keep-alive'
     }
     yzm = get_yzm()
     check_data = {
@@ -144,6 +155,7 @@ def check():
     check_url = 'http://www.cwddd.com/Service/actwf.html'
     check_res = session.post(check_url, data=check_data, headers=check_header)
     res = re.compile(r'<span class="no_VIP_icon fl"></span>\s*?<p>(.*?)</p>')
+    print(check_res.text)
     mes = res.findall(check_res.text)
     return str(mes)
 

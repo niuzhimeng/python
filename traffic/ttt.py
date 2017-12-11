@@ -1,5 +1,2 @@
-import time
-
-a = time.time()
-
-print(a)
+for i in range(1, 3):
+    print(i)

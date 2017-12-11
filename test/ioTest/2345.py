@@ -32,7 +32,11 @@ for one in soup_one:
                     if t.strip() or t1.strip():
                         word[t] = t1
 for a, b in word.items():
-    print(a + '; ' + b)
+    if str(b).__contains__('市'):
+        word[a] = b[:-1]
+
+for c, d in word.items():
+    print(c + '; ' + d)
 try:
     # 获得数据库游标
     with connection.cursor() as cursor:
