@@ -1,5 +1,5 @@
 from time import sleep
-
+from PIL import Image
 from selenium import webdriver
 
 driver = webdriver.PhantomJS()
@@ -15,7 +15,6 @@ login = driver.find_element_by_class_name('lgsubmit')
 login.click()
 sleep(3)
 driver.get('http://www.cwddd.com/Service/wfindex.html')
-sleep(1)
 
 # 登录成功后 获取输入框对象
 carnumber = driver.find_element_by_name('carnumber')
@@ -26,6 +25,18 @@ query_car_sub = driver.find_element_by_class_name('query_car_sub')
 verify.click()
 sleep(1)
 driver.save_screenshot('yzm.png')
+
+# 验证码截取
+# element = driver.find_element_by_id('verifyinfo')
+# left = element.location['x']
+# top = element.location['y']
+# right = element.location['x'] + element.size['width'] + 30
+# bottom = element.location['y'] + element.size['height']
+
+# im = Image.open('yzm.png')
+# im = im.crop((left, top, right, bottom))
+# im.save('yzm2.png')
+
 y = input('yzm: ')
 # input框赋值
 carnumber.send_keys('川A59ZT5')
